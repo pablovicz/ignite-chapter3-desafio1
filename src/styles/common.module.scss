@@ -1,1 +1,31 @@
-// TODO
+.infoContainer {
+
+    width: 263px;
+    height: 20px;
+
+
+    margin-top: 1.5rem;
+
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+
+    div {
+        display: flex;
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    time,
+    h5 {
+        font-size: 0.875rem;
+        font-weight: 400;
+        line-height: 1.0625rem;
+
+        padding-left: 0.5rem;
+
+        color: var(--gray-400);
+    }
+}
