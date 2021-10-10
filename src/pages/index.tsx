@@ -2,14 +2,15 @@ import { GetStaticProps } from 'next';
 import Head from 'next/head';
 import Link from 'next/link';
 import Prismic from '@prismicio/client';
-import { RichText } from 'prismic-dom';
+import { useState } from 'react';
 
 import { FiCalendar, FiUser } from 'react-icons/fi';
 
-import { getPrismicClient } from '../services/prismic';
+import { getPrismicClient, prismicToPostsList } from '../services/prismic';
 
 import commonStyles from '../styles/common.module.scss';
 import styles from './home.module.scss';
+
 
 interface Post {
   uid?: string;
@@ -31,6 +32,32 @@ interface HomeProps {
 }
 
 export default function Home({ postsPagination }: HomeProps) {
+
+  const [posts, setPosts] = useState<Post[]>(postsPagination?.results);
+  const [nextPage, setNextPage] = useState<String>(postsPagination?.next_page);
+
+
+  async function handleLoadMorePosts() {
+
+    if (nextPage) {
+      var headers = new Headers();
+
+      fetch(postsPagination.next_page, {
+        method: 'GET',
+        headers: headers,
+        mode: 'cors'
+      })
+        .then(response => response.json())
+        .then((response) => {
+          const newPosts = prismicToPostsList(response);
+          const newPostList = [...posts, ...newPosts];
+          setPosts(newPostList);
+          setNextPage(response.next_page);
+        })
+    }
+  }
+
+
   return (
     <>
       <Head>
@@ -38,90 +65,61 @@ export default function Home({ postsPagination }: HomeProps) {
       </Head>
       <main className={styles.container}>
         <div className={styles.posts}>
-          <Link href="#">
-            <a>
-              <strong>Como Utilizar Hooks</strong>
-              <p>Pensando em sincronização em vezx de ciclos de vida.</p>
-              <div className={commonStyles.infoContainer}>
-                <div>
-                  <FiCalendar />
-                  <time>15 Mar 2021</time>
+          {posts.map(post => (
+            <Link href={`/posts/${post.uid}`} key={post.uid}>
+              <a>
+                <strong>{post.data.title}</strong>
+                <p>{post.data.subtitle}</p>
+                <div className={commonStyles.infoContainer}>
+                  <div>
+                    <FiCalendar />
+                    <time>{post.first_publication_date}</time>
+                  </div>
+                  <div>
+                    <FiUser />
+                    <h5>{post.data.author}</h5>
+                  </div>
                 </div>
-                <div>
-                  <FiUser />
-                  <h5>Joseph Oliveira</h5>
-                </div>
-              </div>
-            </a>
-          </Link>
-          <Link href="#">
-            <a>
-              <strong>Como Utilizar Hooks</strong>
-              <p>Pensando em sincronização em vezx de ciclos de vida.</p>
-              <div className={commonStyles.infoContainer}>
-                <div>
-                  <FiCalendar />
-                  <time>15 Mar 2021</time>
-                </div>
-                <div>
-                  <FiUser />
-                  <h5>Joseph Oliveira</h5>
-                </div>
-              </div>
-            </a>
-          </Link>
-          <Link href="#">
-            <a>
-              <strong>Como Utilizar Hooks</strong>
-              <p>Pensando em sincronização em vezx de ciclos de vida.</p>
-              <div className={commonStyles.infoContainer}>
-                <div>
-                  <FiCalendar size={20}/>
-                  <time>15 Mar 2021</time>
-                </div>
-                <div>
-                  <FiUser size={20}/>
-                  <h5>Joseph Oliveira</h5>
-                </div>
-              </div>
-            </a>
-          </Link>
+              </a>
+            </Link>
+          ))}
+
         </div>
-        <button type="button">
-          Carregar mais posts
-        </button>
+        {nextPage !== null ? (
+          <button type="button" onClick={handleLoadMorePosts}>
+            Carregar mais posts
+          </button>
+        ) : (
+          <div></div>
+        )
+        }
       </main>
 
     </>
   );
 }
 
-// export const getStaticProps: GetStaticProps = async () => {
-//   const prismic = getPrismicClient();
-//   const postsResponse = await prismic.query([
-//     Prismic.Predicates.at('document.type', 'post')
-//   ], {
-//     fetch: ['post.title', 'post.content'],
-//     pageSize: 5
-//   });
+export const getStaticProps: GetStaticProps = async () => {
 
-//   console.log(JSON.stringify(postsResponse, null, 2));
+  const prismic = getPrismicClient();
 
-//   const posts = postsResponse.results.map(post => {
-//     return {
-//       slug: post.uid,
-//       title: RichText.asText(post.data.title),
-//       updatedAt: new Date(post.last_publication_date).toLocaleDateString('pt-BR', {
-//         day: '2-digit',
-//         month: 'long',
-//         year: 'numeric'
-//     })
-//     }
-//   })
+  const postsResponse = await prismic.query([
+    Prismic.Predicates.at('document.type', 'post')
+  ], {
+    fetch: ['post.title', 'post.subtitle', 'post.author', 'post.banner', 'post.content'],
+    pageSize: 5
+  });
 
-//   return {
-//     props: {
-//         posts
-//     }
-// }
-// };
+  //console.log(JSON.stringify(postsResponse, null, 2));
+
+  const postsPagination = {
+    next_page: postsResponse.next_page,
+    results: prismicToPostsList(postsResponse)
+  }
+
+  return {
+    props: {
+      postsPagination
+    }
+  }
+};

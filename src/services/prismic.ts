@@ -12,3 +12,25 @@ export function getPrismicClient(req?: unknown): DefaultClient {
 
   return prismic;
 }
+
+
+export function prismicToPostsList(prismicResponse) {
+  const posts = prismicResponse.results.map(post => {
+    return {
+      uid: post.uid,
+      first_publication_date: new Date(post.last_publication_date).toLocaleDateString('pt-BR', {
+        day: '2-digit',
+        month: 'short',
+        year: 'numeric'
+      }),
+      data: {
+        title: post.data.title,
+        subtitle: post.data.subtitle,
+        author: post.data.author,
+      }
+    }
+  });
+
+
+  return posts;
+}

@@ -50,3 +50,21 @@ a {
 }
 
 
+
+/* width */
+::-webkit-scrollbar {
+  width: 0.5rem;
+}
+
+/* Track */
+::-webkit-scrollbar-track {
+  border-radius: 0.2rem;
+
+}
+
+/* Handle */
+::-webkit-scrollbar-thumb {
+  background: var(--gray-400);
+  border-radius: 0.2rem;
+}
+
