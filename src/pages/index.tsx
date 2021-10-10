@@ -4,12 +4,10 @@ import Link from 'next/link';
 import Prismic from '@prismicio/client';
 import { useState } from 'react';
 
-import { FiCalendar, FiUser } from 'react-icons/fi';
-
 import { getPrismicClient, prismicToPostsList } from '../services/prismic';
 
-import commonStyles from '../styles/common.module.scss';
 import styles from './home.module.scss';
+import { PostInfo } from '../components/PostInfo';
 
 
 interface Post {
@@ -66,20 +64,14 @@ export default function Home({ postsPagination }: HomeProps) {
       <main className={styles.container}>
         <div className={styles.posts}>
           {posts.map(post => (
-            <Link href={`/posts/${post.uid}`} key={post.uid}>
+            <Link href={`/post/${post.uid}`} key={post.uid}>
               <a>
                 <strong>{post.data.title}</strong>
                 <p>{post.data.subtitle}</p>
-                <div className={commonStyles.infoContainer}>
-                  <div>
-                    <FiCalendar />
-                    <time>{post.first_publication_date}</time>
-                  </div>
-                  <div>
-                    <FiUser />
-                    <h5>{post.data.author}</h5>
-                  </div>
-                </div>
+                <PostInfo 
+                  publication_date={post.first_publication_date}
+                  author={post.data.author}
+                />
               </a>
             </Link>
           ))}

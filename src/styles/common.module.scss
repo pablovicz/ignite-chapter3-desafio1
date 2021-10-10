@@ -1,14 +1,12 @@
 .infoContainer {
 
-    width: 50%;
     height: 20px;
-
 
     margin-top: 1.5rem;
 
     display: flex;
     flex-direction: row;
-    justify-content: space-between;
+    justify-content: flex-start;
     align-items: center;
 
     div {
@@ -16,7 +14,13 @@
         flex-direction: row;
         justify-content: space-between;
         align-items: center;
+
+        & + div {
+            margin-left: 2rem;
+        }
     }
+
+    
 
     time,
     h5 {
