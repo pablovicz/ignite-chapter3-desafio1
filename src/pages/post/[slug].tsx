@@ -10,6 +10,7 @@ import { getPrismicClient } from '../../services/prismic';
 import { DateFormatter } from '../../utils/dateFormatter';
 import { TextToReadingDuration } from '../../utils/wordsCounter';
 import styles from './post.module.scss';
+import { useRouter } from 'next/router';
 
 interface Post {
   first_publication_date: string | null;
@@ -19,7 +20,6 @@ interface Post {
       url: string;
     };
     author: string;
-    duration: number;
     content: {
       heading: string;
       body: {
@@ -35,21 +35,27 @@ interface PostProps {
 
 export default function Post({ post }: PostProps) {
 
-  // console.log(post.data.content.body);
+
+  const router = useRouter();
+
+  if (router.isFallback) {
+    return <p>Carregando...</p>;
+  }
+
 
   return (
     <>
       <Head>
         <title>Post | spacetraveling</title>
       </Head>
-      <img src={post.data.banner.url} alt="banner" />
+      <img src={post.data.banner.url} alt="banner" className={styles.banner}/>
       <main className={styles.container}>
         <article className={styles.content}>
           <h1>{post.data.title}</h1>
           <PostInfo
-            publication_date={post.first_publication_date}
+            publication_date={DateFormatter(post.first_publication_date)}
             author={post.data.author}
-            duration={post.data.duration}
+            duration={TextToReadingDuration(post.data.content)}
           />
           {post.data.content.map(content => (
             <div key={content.heading}>
@@ -68,8 +74,12 @@ export default function Post({ post }: PostProps) {
 
 export const getStaticPaths: GetStaticPaths = async () => {
   const prismic = getPrismicClient();
-  const posts = await prismic.query([Prismic.Predicates.at('document.type', 'post')]);
-  const paths = posts.results.map(post => {return `/post/${post.uid}`});
+  const posts = await prismic.query([Prismic.predicates.at('document.type', 'posts')],{
+      pageSize: 2,
+    }
+  );
+
+  const paths = posts.results.map(post => ({params: { slug: post.uid }}));
 
   return {
     paths: paths,
@@ -97,20 +107,19 @@ export const getStaticProps: GetStaticProps = async ({ params }) => {
 
 
   const post = {
-    first_publication_date: DateFormatter(response.first_publication_date),
+    uid: response.uid,
+    first_publication_date: response.first_publication_date,
     data: {
       title: response.data.title,
-      banner: {
-        url: response.data.banner
-      },
+      subtitle: response.data.subtitle,
+      banner: response.data.banner,
       author: response.data.author,
-      duration:  TextToReadingDuration(response.data.content),
       content: content,
     }
 
   }
 
-  console.log(post)
+  // console.log(post)
 
   return {
     props: {

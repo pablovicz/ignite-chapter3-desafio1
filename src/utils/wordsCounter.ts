@@ -2,7 +2,15 @@ import { RichText } from "prismic-dom";
 
 
 export function TextToReadingDuration(content){
-    const text = `${content[0].heading} `.concat(RichText.asText(content[0].body));
-    const totalWords = text.split(' ').length;
-    return Math.ceil(totalWords / 200) 
+
+    let fullText = '';
+    const readWordsPerMinute = 200;
+
+    content.forEach(postContent => {
+      fullText += postContent.heading;
+      fullText += RichText.asText(postContent.body);
+    });
+
+
+    return Math.ceil(fullText.split(/\s/g).length / readWordsPerMinute);
 }

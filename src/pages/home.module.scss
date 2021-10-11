@@ -22,6 +22,12 @@
     &:hover button {
         filter: brightness(0.8);
     }
+
+
+    .disabled {
+        cursor: not-allowed;
+        color: var(--pink-500);
+    }
 }
 
 .posts {
